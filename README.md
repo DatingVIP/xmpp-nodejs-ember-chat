@@ -1,0 +1,2 @@
+xmpp-nodejs-ember-chat
+======================
