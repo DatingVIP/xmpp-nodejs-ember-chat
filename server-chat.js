@@ -4,14 +4,17 @@
 var Config = {		// communication dump
 
 	Bosh: {
-		host: 'localhost'
-	},
+		host:			'localhost'
+,		port:			'9090'
+	}
 
-	App: {
-		host:		'localhost',
-		port:		'9677',
-		ssl_port:	'19677'
-	},
+,	App: {
+		host:			'localhost'
+,		port:			'9677'
+,		ssl_port:		'19677'
+,		css_version:	'1'
+,		session_secret:	'f7cd7374c2851fb727582bf'
+	}
 };
 
 /**
@@ -63,7 +66,7 @@ logger.Config.enable_logfile = true;
  * removes bosh connections
  */
 function boshConnectionRemove(id){
-	if (typeof bosh_connections[id] != 'undefined'){
+	if (typeof bosh_connections[id] !== 'undefined'){
 		logger.log(id, 'bosh object removed', 2);
 		bosh_connections[id] = null;
 		delete bosh_connections[id];
@@ -95,7 +98,7 @@ function BoshConnector(opts){
 	// error in bosh client
 	self.connection.on('error', function(exception) {
 		logger.log(self.opts.myjid, "Error: " + exception, 1);
-		if (exception == "XMPP authentication failure"){
+		if (exception === "XMPP authentication failure"){
 			self.connection.end();
 			if (!self.opts.resource._headerSent){
 				self.opts.resource.render('blank', {
@@ -103,11 +106,11 @@ function BoshConnector(opts){
 				});
 			}
 		}
-		if(typeof exception.name == 'string' && exception.name == 'stream:error'){
-			if(typeof exception.children == 'object' && typeof exception.children[0].name == 'string' && exception.children[0].name == 'system-shutdown'){
+		if(typeof exception.name === 'string' && exception.name === 'stream:error'){
+			if(typeof exception.children === 'object' && typeof exception.children[0].name === 'string' && exception.children[0].name === 'system-shutdown'){
 				self.connection.end();
 			}
-			if(typeof exception.children == 'object' && typeof exception.children[0].name == 'string' && exception.children[0].name == 'conflict'){
+			if(typeof exception.children === 'object' && typeof exception.children[0].name === 'string' && exception.children[0].name === 'conflict'){
 				logger.log(self.opts.myjid, "Conflict again", 2);
 			}
 		}
@@ -117,7 +120,7 @@ function BoshConnector(opts){
 	self.connection.on('offline', function(reason) {
 		logger.log(self.opts.myjid, 'bosh.offline reason: ' + reason, 2);
 		try {
-			if ( typeof self.socket != 'undefined' && getSize( self.socket) > 0 ){
+			if ( typeof self.socket !== 'undefined' && getSize( self.socket) > 0 ){
 				for (var socket_id in self.socket) {
 					self.socket[socket_id].write( JSON.stringify({'event': 'disconnect', 'data': {} }) );
 				}
@@ -146,16 +149,16 @@ function BoshConnector(opts){
 				self.connection.end();
 				return;
 			}
-			else if(typeof ltxe.name === "string" && ltxe.name == 'message'){ // store messages
+			else if(typeof ltxe.name === "string" && ltxe.name === 'message'){ // store messages
 				// save archived message
 				archiveHandler.add(self.opts.myjid, ltxe.toString());
-				_allow_send = (self.unavailable == 1)?false:true;
+				_allow_send = (self.unavailable === 1)?false:true;
 			}
-			else if(typeof ltxe.name === "string" && ltxe.name == 'presence' && ltxe.attrs.from){// save last user presence
+			else if(typeof ltxe.name === "string" && ltxe.name === 'presence' && ltxe.attrs.from){// save last user presence
 				// (kind of cache)
 				_log_type = ltxe.attrs.type;
-				if (ltxe.attrs.type == 'unavailable' || ltxe.attrs.type == 'unsubscribe' || ltxe.attrs.type == 'unsubscribed' ){
-					if (typeof self.presences[ltxe.attrs.from] != 'undefined'){
+				if (ltxe.attrs.type === 'unavailable' || ltxe.attrs.type === 'unsubscribe' || ltxe.attrs.type === 'unsubscribed' ){
+					if (typeof self.presences[ltxe.attrs.from] !== 'undefined'){
 						delete self.presences[stanzasHelper.getBareJidFromJid(ltxe.attrs.from)];
 					}
 				}
@@ -191,9 +194,9 @@ function BoshConnector(opts){
 				self.connection.send(stanzasHelper.$pres());
 				var sesdata = {
 					jid: self.opts.myjid,
-					url: self.opts.url_scheme + Config.App.host + ':' + (self.opts.url_scheme == 'https://'?Config.App.ssl_port:Config.App.port),
-					css: '/css/chat.css?v=2',
-					i18n: self.opts.i18n,
+					url: self.opts.url_scheme + Config.App.host + ':' + (self.opts.url_scheme === 'https://'?Config.App.ssl_port:Config.App.port),
+					css: '/css/chat.css?v=' + Config.App.css_version,
+					i18n: self.opts.i18n
 				};
 				self.opts.resource.render(self.opts.page_name, {
 					layout: self.opts.layout,
@@ -221,7 +224,7 @@ function BoshConnector(opts){
 	});
 	//set bosh connection "to remove" when last socket disconnected (will be removed after 15min)
 	self.markToDisconnect = function(){
-		if (self.last_diconnected == 0){
+		if (self.last_diconnected === 0){
 			self.last_diconnected = new Date().getTime();
 		}
 	};
@@ -248,7 +251,7 @@ function BoshConnector(opts){
 				if ( getSize( self.socket) > 0 ){
 					active_sockets++;
 				}
-				if (active_sockets == 0) {
+				if (active_sockets === 0) {
 					logger.log('GC2', self.opts.myjid + ' add mark as discon ', 2);
 					self.markToDisconnect();
 				}
@@ -285,7 +288,7 @@ var ArchivedMessagesHandler = function() {
 	 * add archived message method
 	 */
 	this.add = function(owner, message) {
-		if (typeof messages_archive[owner] == 'undefined'){
+		if (typeof messages_archive[owner] === 'undefined'){
 			messages_archive[owner] = [];
 		}
 		messages_archive[owner].push(JSON.stringify({date: new Date().getTime(), data: message}));
@@ -294,7 +297,7 @@ var ArchivedMessagesHandler = function() {
 	 * get archived messages for owner from username conversation
 	 */
 	this.getArchiveByUser = function(owner, username, socket) {
-		if (typeof messages_archive[owner] == 'undefined') { return false; }
+		if (typeof messages_archive[owner] === 'undefined') { return false; }
 		try {
 			var by_user_results = [];
 			if (messages_archive[owner] && messages_archive[owner].length > 0){
@@ -325,7 +328,7 @@ var ArchivedMessagesHandler = function() {
 	 * get all user archived messages
 	 */
 	this.getArchiveAll = function(owner, socket) {
-		if (typeof messages_archive[owner] == 'undefined') { return false; }
+		if (typeof messages_archive[owner] === 'undefined') { return false; }
 		try {
 			var results = messages_archive[owner];
 			messages_archive[owner] = [];
@@ -337,7 +340,7 @@ var ArchivedMessagesHandler = function() {
 					if (diff <= 60*30){
 						messages_archive[owner].push(row);
 					}
-				})
+				});
 				socket.write( JSON.stringify({'event': 'archiveall', 'data': results }) );
 			}
 		}
@@ -346,7 +349,7 @@ var ArchivedMessagesHandler = function() {
 			logger.log(owner, "EXCEPTION: " + logger.dumpException(err));
 		}
 	};
-}
+};
 var archiveHandler = new ArchivedMessagesHandler();
 
 /**
@@ -433,12 +436,12 @@ var appSocketHandle = {
 				logger.log(data.user, 'app.stanzafromclient.bosh.send ('+ltx.parse(data.stanza).name+ ' to ' + ltx.parse(data.stanza).attrs.to + ')', 2);
 				logger.log('', ltx.parse(data.stanza), 4);
 				bosh_connections[data.user].connection.send(ltx.parse(data.stanza));
-				if(ltx.parse(data.stanza).name == 'message'){
+				if(ltx.parse(data.stanza).name === 'message'){
 					// save archived message
 					archiveHandler.add(data.user, data.stanza);
 					if (bosh_connections[data.user].socket){
 						for (var sock_id in bosh_connections[data.user].socket){
-							if (bosh_connections[data.user].socket[sock_id].id != socket.id){
+							if (bosh_connections[data.user].socket[sock_id].id !== socket.id){
 								logger.log((ltx.parse(data.stanza).attrs.from)?ltx.parse(data.stanza).attrs.from:"", 'app.stanzafromclient.bosh.socket.emit.ownstanza '+ ' to ' + data.user, 2);
 								logger.log('', data.stanza, 4);
 
@@ -447,19 +450,19 @@ var appSocketHandle = {
 						}
 					}
 				}
-				else if(ltx.parse(data.stanza).name == 'presence'){
-					if (ltx.parse(data.stanza).attrs.from == data.user && ltx.parse(data.stanza).attrs.type == 'unavailable'){
+				else if(ltx.parse(data.stanza).name === 'presence'){
+					if (ltx.parse(data.stanza).attrs.from === data.user && ltx.parse(data.stanza).attrs.type === 'unavailable'){
 						bosh_connections[data.user].unavailable = 1;
 						if (bosh_connections[data.user] && bosh_connections[data.user].socket){
 							for (var sock_id in bosh_connections[data.user].socket){
-								if (bosh_connections[data.user].socket[sock_id] && bosh_connections[data.user].socket[sock_id].id != socket.id) {
+								if (bosh_connections[data.user].socket[sock_id] && bosh_connections[data.user].socket[sock_id].id !== socket.id) {
 									logger.log('', "bosh.socket.emit.disconnect: " + data.user + " > socket #" + sock_id , 2);
 									bosh_connections[data.user].socket[sock_id].write( JSON.stringify({'event': 'disconnect', 'data': {} }) );
 								}
 							}
 						}
 					}
-					else if (ltx.parse(data.stanza).attrs.from == data.user){
+					else if (ltx.parse(data.stanza).attrs.from === data.user){
 						bosh_connections[data.user].unavailable = 0;
 						bosh_connections[data.user].presences[stanzasHelper.getBareJidFromJid(ltx.parse(data.stanza).attrs.from)] = ltx.parse(data.stanza).attrs.from;
 					}
@@ -474,7 +477,7 @@ var appSocketHandle = {
 			socket.write(JSON.stringify({'event': 'fixconnection', 'data': data.user }));
 		}
 	},
-	
+
 	// from client: send archive (by user) request
 	getarchivebyuser: function(socket, data) {
 		if (data.jid && data.username){
@@ -489,14 +492,14 @@ var appSocketHandle = {
 			}
 		}
 	},
-	
+
 	// from client: send all archive messages request
 	getarchiveall: function(socket, data) {
 		if (data.jid){
 			try
 			{
 				logger.log(data.jid, 'app.getarchiveall', 2);
-				if (bosh_connections[data.jid] && bosh_connections[data.jid].unavailable != 1) {
+				if (bosh_connections[data.jid] && bosh_connections[data.jid].unavailable !== 1) {
 					archiveHandler.getArchiveAll(data.jid, socket);
 				}
 			}
@@ -521,8 +524,8 @@ var appSocketHandle = {
 					while (!bosh_connections[username].connection.send || !bosh_connections[username].socket || !bosh_connections[username].sess_attr){
 						logger.log(username, "waiting for connection");
 					}
-	
-					if (bosh_connections[username].unavailable != 1) {
+
+					if (bosh_connections[username].unavailable !== 1) {
 						logger.log(username, 'app.adduser.bosh.send', 2);
 						logger.log('', stanzasHelper.$iq({type: 'get'}).c('query', {xmlns: 'jabber:iq:roster'}), 4);
 						bosh_connections[username].connection.send(stanzasHelper.$iq({type: 'get'}).c('query', {xmlns: 'jabber:iq:roster'}));
@@ -564,7 +567,7 @@ var appSocketHandle = {
 			}
 		}
 	},
-	
+
 	// forward info that user is typing
 	gettyping: function(data) {
 		logger.log(data.from, 'app.socket.gettyping', 4);
@@ -578,7 +581,7 @@ var appSocketHandle = {
 			}
 		}
 		return this.disconnect;
-	},
+	}
 };
 exports.appSocketHandle = appSocketHandle;
 
@@ -598,8 +601,8 @@ exports.run = function() {
 		app.use(express.urlencoded());
 		app.use(require('connect-multiparty')());
 		app.use(express.cookieParser());
-		app.use(express.session({secret: 'f7cd7374c2851fb727582bf'}));
-		
+		app.use(express.session({secret: Config.App.session_secret}));
+
 		app.use('/js', express.static(__dirname + '/js'));
 		app.use('/css', express.static(__dirname + '/css'));
 		app.use('/build', express.static(__dirname + '/build'));
@@ -615,7 +618,7 @@ exports.run = function() {
 
 	var server = http.createServer( app ).listen(Config.App.port); // XMPP
 	var serv_io = new Primus(server, { transformer: 'sockjs', timeout: 12000});
-	
+
 	var options = {
 		//key: fs.readFileSync('key path'),
 		//cert: fs.readFileSync('crt path'),
@@ -692,7 +695,7 @@ exports.run = function() {
 						case 'getarchiveall':
 							appSocketHandle.getarchiveall(socket, request.data);
 							break;
-							
+
 						case 'typing':
 							appSocketHandle.gettyping(request.data);
 							break;
@@ -748,7 +751,7 @@ var stanzasHelper = {
 	getBareJidFromJid: function (jid)
 	{
 		return jid ? jid.split("/")[0] : null;
-	},
+	}
 };
 
 /**
@@ -782,21 +785,21 @@ app.get('/get_chat', function (req, res) {
 
 		try {
 			//pass change case
-			if (bosh_connections[myjid] && bosh_connections[myjid].sess_attr.password != mypassword){
+			if (bosh_connections[myjid] && bosh_connections[myjid].sess_attr.password !== mypassword){
 				bosh_connections[myjid].connection.end();
 				res.render('chatonly', { layout: false,
 					locals: {
 						jid: myjid,
 						url: url_scheme+Config.App.host+':'+(url_scheme === 'https://'?Config.App.ssl_port:Config.App.port),
-						css: (req.query.main_user)?'/css/chat_detach.css?v=2':'/css/chat.css?v=2',
-						i18n: (req.query.i18n ? req.query.i18n : "en"),
+						css: (req.query.main_user)?'/css/chat_detach.css?v=' + Config.App.css_version :'/css/chat.css?v='  + Config.App.css_version,
+						i18n: (req.query.i18n ? req.query.i18n : "en")
 					}
 				});
 				return;
 			}
 			//existing connection case
 			if (bosh_connections[myjid] && bosh_connections[myjid].sess_attr.password === mypassword){
-				if (bosh_connections[myjid].unavailable != 1 && bosh_connections[myjid].connection.state == 5){
+				if (bosh_connections[myjid].unavailable !== 1 && bosh_connections[myjid].connection.state === 5){
 					logger.log(myjid, 'app.get.bosh.send', 2);
 					logger.log('', stanzasHelper.$pres(), 4);
 					bosh_connections[myjid].connection.send(stanzasHelper.$pres());
@@ -804,9 +807,9 @@ app.get('/get_chat', function (req, res) {
 				res.render('chatonly', { layout: false,
 					locals: {
 						jid: myjid,
-						url: url_scheme+Config.App.host+':'+(url_scheme == 'https://'?Config.App.ssl_port:Config.App.port),
-						css: (req.query.main_user)?'/css/chat_detach.css?v=2':'/css/chat.css?v=2',
-						i18n: (req.query.i18n ? req.query.i18n : "en"),
+						url: url_scheme+Config.App.host+':'+(url_scheme === 'https://'?Config.App.ssl_port:Config.App.port),
+						css: (req.query.main_user)?'/css/chat_detach.css?v='  + Config.App.css_version :'/css/chat.css?v='  + Config.App.css_version,
+						i18n: (req.query.i18n ? req.query.i18n : "en")
 					}
 				});
 			}
@@ -839,13 +842,13 @@ app.get('/getonlineusers', function (req, res) {
 	logger.log('', 'app.get: /getonlineusers', 2);
 	try {
 		var request = require('request');
-		request.get('http://'+Config.Bosh.host+':9090/plugins/onlineusers/list', function (error, response, body) {
-			if (!error && response.statusCode == 200) {
+		request.get('http://'+Config.Bosh.host+':'+Config.Bosh.port+'/plugins/onlineusers/list', function (error, response, body) {
+			if (!error && response.statusCode === 200) {
 				res.send(body);
 			}
 		});
 	}
-	catch (err) { 
+	catch (err) {
 		logger.log('getonline error', "EXCEPTION: " + logger.dumpException(err));
 	}
 });
