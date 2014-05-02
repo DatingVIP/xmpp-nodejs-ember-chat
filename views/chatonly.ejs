@@ -1,0 +1,44 @@
+<!doctype html>
+
+Online users list
+<div id="onlineusers"></div>
+
+<link rel="stylesheet" href="<%= url %><%= css %>"/>
+<link rel="stylesheet" href="<%= url %>/css/smoothness/jquery-ui.min.css"/>
+<script src="<%= url %>/js/libs/jquery-1.8.3.min.js"></script>
+<script src="//code.jquery.com/ui/1.10.4/jquery-ui.js"></script>
+
+<script>
+  var lang_config = {};
+  var main_jid = '<%= jid %>';
+  var main_url = '<%= url %>';
+  var app_i18n = '<%= i18n %>';
+</script>
+
+<script type="text/javascript">
+window.ENV = {};
+ENV.EXTEND_PROTOTYPES = false;
+
+if (!window.jQuery)	{
+	document.write('<script data-main="<%= url %>/js/chat/main" src="<%= url %>/js/libs/require.js"><\/script>');
+} else { 
+	if ( window.jQuery.browser.msie && window.jQuery.browser.version < 8) {
+		// do nothing - incompatible browser
+	}
+	else if ( window.jQuery.browser.msie && window.jQuery.browser.version == '8.0') {
+		document.write('<script data-main="<%= url %>/js/chat//main" src="<%= url %>/js/libs/require.js"><\/script>');
+	}
+	else {
+		document.write('<script data-main="<%= url %>/js/chat/main" src="<%= url %>/js/libs/require.js"><\/script>');
+	}
+}
+
+$(document).ready(function(){
+	$.get('/getonlineusers',function(ret){
+		$.each(JSON.parse(ret), function(index, value) {
+			$('#onlineusers').append('<a href="javascript:void(0);" onclick="Chat.Controllers.chatTabs.createTabByJid(\''+value+'\');">'+value+'</a><br/>');
+		});
+	})
+});
+
+</script>

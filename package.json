@@ -1,0 +1,22 @@
+{
+  "name": "dating-chat-node-server",
+  "preferGlobal": false,
+  "version": "1.0.0",
+  "author": "Artur Plawecki <artur.plawecki@gmail.com>, Bartosz Rylko <bartek.rylko@gmail.com>, Pawel Miroslawski <pmiroslawski@gmail.com>",
+  "dependencies": {
+    "connect": "latest",
+    "connect-multiparty": "latest",
+    "ejs": "latest",
+    "express": "latest",
+    "express-partials": "latest",
+    "http-proxy": "latest",
+    "jquery": "latest",
+    "ltx": "latest",
+    "node-xmpp-client": "latest",
+    "redis": "latest",
+    "socket.io": "latest",
+    "sockjs": "~0.3.8",
+    "ws": "~0.4.31",
+    "request": "latest"
+  }
+}
